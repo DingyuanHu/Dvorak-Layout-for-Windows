@@ -17,24 +17,17 @@ if( -not $currentWp.IsInRole([Security.Principal.WindowsBuiltInRole]::Administra
 Set-Location C:\Windows\System32
 
 #region Set ACL of file
-$dvacl=Get-Acl .\KBDDV.DLL
-$usacl=Get-Acl .\KBDUS.DLL
-
-$account = "BUILTIN\Administrators"
+$account = (Get-Acl $env:APPDATA).Owner
 $FileSystemRights = "FullControl"
 $objType = [System.Security.AccessControl.AccessControlType]::Allow
 $accessRule = New-Object System.Security.AccessControl.FileSystemAccessRule ($account,$FileSystemRights,$objType)
-$owner = New-Object System.Security.Principal.NTAccount("BUILTIN","Administrators")
 
-$dvacl.SetOwner($owner)
-$usacl.SetOwner($owner)
-Set-Acl -Path .\KBDDV.DLL -AclObject $dvacl
-Set-Acl -Path .\KBDUS.DLL -AclObject $usacl
+$aclobj=(Get-Acl C:\Windows\System32\KBDUS.DLL)
+$aclobj.SetOwner($accessRule.IdentityReference)
+$aclobj.SetAccessRule($accessRule)
 
-$dvacl.SetAccessRule($accessRule)
-$usacl.SetAccessRule($accessRule)
-Set-Acl -Path .\KBDDV.DLL -AclObject $dvacl
-Set-Acl -Path .\KBDUS.DLL -AclObject $usacl
+Set-Acl -AclObject $aclobj -Path  C:\Windows\System32\KBDUS.DLL
+Set-Acl -AclObject $aclobj -Path  C:\Windows\System32\KBDDV.DLL
 #endregion
 
 
